@@ -181,14 +181,14 @@ $('unit').addEventListener('change',options);$('size').addEventListener('change'
 <p class="ep48-small">La IA puede equivocarse. Verifica la ficha original y los protocolos de tu institución. No se debe usar para decisiones clínicas autónomas.</p>
 </section>
 <script type="module" id="ep48-gemini-script">
-import {getApps,getApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import {initializeAppCheck,ReCaptchaEnterpriseProvider} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
+import {getApps,getApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {getAuth} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js";
+import {initializeAppCheck,ReCaptchaEnterpriseProvider} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app-check.js";
 // Configure this public *site key* after registering the GitHub Pages domain in Firebase App Check.
 // This is NOT a Gemini API key. The Gemini secret belongs exclusively in Cloud Secret Manager.
 const APP_CHECK_SITE_KEY = "";
-const btn=document.getElementById("ep48-ask"),status=document.getElementById("ep48-status"),out=document.getElementById("ep48-answer");
+let appCheckReady=false;const btn=document.getElementById("ep48-ask"),status=document.getElementById("ep48-status"),out=document.getElementById("ep48-answer");
 const normalize=s=>(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 function context(question){
   const words=normalize(question).split(/[^a-z0-9]+/).filter(w=>w.length>3);
@@ -212,7 +212,7 @@ btn.addEventListener("click",async()=>{
   if(!sources.length){status.textContent="No se encontraron fichas relacionadas. Prueba el buscador local; la IA no responderá sin fuentes.";return}
   btn.disabled=true;status.textContent="Consultando las fichas y Gemini…";
   try{
-    initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});
+    if(!appCheckReady){initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});appCheckReady=true;}
     const call=httpsCallable(getFunctions(app,"us-central1"),"consultarGemini",{timeout:40000});
     const result=await call({question:q,sources});
     const answer=String(result.data?.answer||"");
